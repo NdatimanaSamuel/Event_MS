@@ -1,9 +1,40 @@
-import { useState } from "react";
+import { useEffect } from "react";
 
 import SideBarMenu from "../../components/SideBarMenu";
-
+import { useDispatch, useSelector } from "react-redux";
+import { getEvents } from "../../redux/features/events/eventSlice";
+import { Navigate } from "react-router-dom";
+import { adminViewAllBooking } from "../../redux/features/booking/bookingSlice";
 const AdminHome = () => {
-  const [searchQuery, setSearchQuery] = useState("");
+  const dispatch = useDispatch();
+
+  const { events } = useSelector((state) => state.event);
+  useEffect(() => {
+    // Dispatch an action to get events data when the component mounts
+    dispatch(getEvents());
+  }, [dispatch]);
+
+  const { user } = useSelector((state) => state.auth);
+
+  useEffect(() => {
+    if (user && user.role === "admin") {
+      dispatch(adminViewAllBooking());
+    }
+  }, [dispatch, user]);
+
+  const { bookings } = useSelector((state) => state.booking);
+  const rejectedBookings = bookings.filter(booking => booking.status === "cancelled");
+  const pendingBookings = bookings.filter(booking => booking.status === "pending");
+  const confirmedBookings = bookings.filter(booking => booking.status === "approved");
+
+  if (!user) {
+    return <Navigate to="/login" />;
+  }
+
+  if (user.role !== "admin") {
+    // For example, if only customers are allowed to make a booking
+    return <Navigate to="/unauthorized" />; // Redirect to an unauthorized page
+  }
   return (
     <>
       <div className="flex">
@@ -22,8 +53,6 @@ const AdminHome = () => {
                   <input
                     type="text"
                     placeholder="Search Here..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
                     className="border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:border-blue-500"
                   />
                   <i className="fa fa-search"></i>
@@ -37,7 +66,7 @@ const AdminHome = () => {
                     className="w-8 h-8 rounded-full mr-2"
                   />
                   <div>
-                    <h3 className="font-semibold">Manage Events</h3>
+                    <h3 className="font-semibold">{user.name}</h3>
                     <p>Admin</p>
                   </div>
                 </div>
@@ -48,20 +77,22 @@ const AdminHome = () => {
           <div className="container mx-auto mt-10">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 justify-items-center">
               <div className="bg-sidebarBg p-6 rounded-lg shadow-md">
-                <h2 className="text-2xl font-semibold text-gray-800">130</h2>
+                <h2 className="text-2xl font-semibold text-gray-800">
+                  {events.length}
+                </h2>
                 <p className="text-sm text-gray-600">All Events</p>
               </div>
-              <div className="bg-sidebarBg p-6 rounded-lg shadow-md">
-                <h2 className="text-2xl font-semibold text-gray-800">10</h2>
-                <p className="text-sm text-gray-600">All Pending booking</p>
+              <div className="bg-red-500 p-6 rounded-lg shadow-md">
+                <h2 className="text-2xl font-semibold text-white">{pendingBookings.length}</h2>
+                <p className="text-sm text-white">All Pending booking</p>
               </div>
-              <div className="bg-sidebarBg p-6 rounded-lg shadow-md">
-                <h2 className="text-2xl font-semibold text-gray-800">155</h2>
-                <p className="text-sm text-gray-600">All Cancelled Booking</p>
+              <div className="bg-yellow-800 p-6 rounded-lg shadow-md">
+                <h2 className="text-2xl font-semibold text-white">{ rejectedBookings.length}</h2>
+                <p className="text-sm text-white">All Cancelled Booking</p>
               </div>
-              <div className="bg-sidebarBg p-6 rounded-lg shadow-md">
-                <h2 className="text-2xl font-semibold text-gray-800">100k</h2>
-                <p className="text-sm text-gray-600">All Approved Booking</p>
+              <div className="bg-green-800 p-6 rounded-lg shadow-md">
+                <h2 className="text-2xl font-semibold text-white">{confirmedBookings.length }</h2>
+                <p className="text-sm text-white">All Approved Booking</p>
               </div>
             </div>
           </div>

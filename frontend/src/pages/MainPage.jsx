@@ -1,8 +1,21 @@
 import { FaHome } from "react-icons/fa";
 import CustomerMenus from "../components/CustomerMenus";
+import { useDispatch, useSelector } from "react-redux";
+import { getEvents } from "../redux/features/events/eventSlice";
+import { useEffect } from "react";
+import { Link } from "react-router-dom";
 
 
 function MainPage() {
+  const dispatch = useDispatch();
+  const { events, isLoading, isError, message } = useSelector(
+    (state) => state.event
+  );
+  useEffect(() => {
+    dispatch(getEvents());
+  }, [dispatch])
+  
+  const isLoggedIn = false;
   return (
     <>
       <header className="bg-white p-4 flex justify-between items-center fixed top-0 w-full z-10 shadow-md">
@@ -14,8 +27,11 @@ function MainPage() {
         <CustomerMenus/>
         </div>
       </header>
+
       {/* Slide Section */}
+      
       <section className="py-16 mt-10">
+     
         <div className="container mx-auto flex items-center">
           <div className="w-1/2">
             <h2 className="text-3xl font-semibold mb-4">
@@ -44,68 +60,61 @@ function MainPage() {
               className="w-4/5 h-56 rounded-md shadow-md ml-5"
             />
           </div>
-        </div>
+          </div>
+              
       </section>
 
       <div className="mt-20"></div>
 
+    {/* Available Events Section */}
       <section className="home py-16">
+      {isLoading ? (
+              <p>Loading...</p>
+            ) : isError ? (
+              <p>Error: {message}</p>
+            ) : (
         <div className="container mx-auto">
           <h1 className="text-4xl font-bold text-center mb-8">
             Available Events
           </h1>
+          {/* Event Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            <div className="bg-gray-100 rounded-lg overflow-hidden shadow-md">
-              <img
-                src="https://i.pinimg.com/originals/8e/07/80/8e078013204d0cc9876e9edbb1fd3f85.jpg"
-                alt="Inyange Dairy"
-                className="w-full h-56 object-cover object-center"
-              />
-              <div className="p-4">
-                <h2 className="text-xl font-semibold">Inyange Dairy</h2>
-                <p className="text-gray-600">Musanze</p>
-                <p className="text-gray-600">April 30, 2024</p>
-                <p className="mt-2 text-gray-700">
-                  Inyange industries is engaged in the business of producing &
-                  selling a wide variety of fruit products, including fruit
-                  juice concentrates, fruit juice drinks & dairy related
-                  products.
-                </p>
-                <a
-                  href="#"
-                  className="block mt-2 text-center bg-sidebarBg text-gray-500 font-semibold px-4 py-2 rounded-md hover:bg-sidebarBg transition duration-300"
-                >
-                  Book Ticket Now
-                </a>
+            {events.map((event) => (
+              <div
+                key={event._id}
+                className="bg-gray-100 rounded-lg overflow-hidden shadow-md"
+              >
+                <img
+                  src="https://i.pinimg.com/originals/8e/07/80/8e078013204d0cc9876e9edbb1fd3f85.jpg"
+                  alt="Inyange Dairy"
+                  className="w-full h-56 object-cover object-center"
+                />
+                <div className="p-4">
+                  <h2 className="text-xl font-semibold">{event.title}</h2>
+                  <p className="text-gray-600">Place: {event.location}</p>
+                  <p className="text-gray-600">Date: {event.date}</p>
+                  <p className="mt-2 text-gray-700 font-bold">Organized By: {event.organizer}</p>
+                  {isLoggedIn ? (
+                    <Link
+                      
+                      className="block mt-2 text-center bg-sidebarBg text-gray-500 font-semibold px-4 py-2 rounded-md hover:bg-sidebarBg transition duration-300"
+                    >
+                      Book Ticket Now
+                    </Link>
+                  ) : (
+                    <Link
+                       to="/login"
+                      className="block mt-2 text-center bg-sidebarBg text-gray-500 font-semibold px-4 py-2 rounded-md hover:bg-sidebarBg transition duration-300"
+                    >
+                      Login to Make Booking
+                    </Link>
+                  )}
+                </div>
               </div>
-            </div>
-
-            <div className="bg-gray-100 rounded-lg overflow-hidden shadow-md">
-              <img
-                src="https://i.pinimg.com/originals/8e/07/80/8e078013204d0cc9876e9edbb1fd3f85.jpg"
-                alt="Mukamira Dairy"
-                className="w-full h-56 object-cover object-center"
-              />
-              <div className="p-4">
-                <h2 className="text-xl font-semibold">Mukamira Dairy</h2>
-                <p className="text-gray-600">Gicumbi</p>
-                <p className="text-gray-600">May 5, 2024</p>
-                <p className="mt-2 text-gray-700">
-                  The Mukamira Plant has started operating since 2017. Its
-                  operations include processing and selling pasteurized milk,
-                  gouda cheese, yogurt, UHT-whole milk, UHT Flavored.
-                </p>
-                <a
-                  href="#"
-                  className="block mt-2 text-center bg-sidebarBg text-gray-500 font-semibold px-4 py-2 rounded-md hover:bg-sidebarBg transition duration-300"
-                >
-                  Book Ticket Now
-                </a>
-              </div>
-            </div>
-            {/* Add more event cards as needed */}
+            ))}
           </div>
-        </div>
+          </div>
+                )}
       </section>
 
       <footer className="bg-white text-colorText py-8  border-t-2 border-gray-300 shadow-md ">

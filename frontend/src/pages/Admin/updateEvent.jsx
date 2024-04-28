@@ -1,16 +1,16 @@
-import { useState } from "react";
-import SideBarMenu from "../../components/SideBarMenu";
+import { ToastContainer, toast } from "react-toastify"
+import SideBarMenu from "../../components/SideBarMenu"
+import { Navigate, useParams } from "react-router-dom";
+import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { toast ,ToastContainer} from "react-toastify";
-import { createEvent, reset } from "../../redux/features/events/eventSlice";
-import { Navigate } from "react-router-dom";
+import { getEventById, updateEvent } from "../../redux/features/events/eventSlice";
 
-const AddNewEvents = () => {
+const UpdateEvent = () => {
+  const { eventId } = useParams(); // Get the eventId from the URL
   const dispatch = useDispatch();
+  const event = useSelector(state => state.event.events); // Assuming your slice name is 'event'
 
-  const [searchQuery, setSearchQuery] = useState("");
-
-  const [formData, setFormData] = useState({
+  const [updateFormData, setUpdateFormData] = useState({
     title: "",
     date: "",
     location: "",
@@ -19,53 +19,37 @@ const AddNewEvents = () => {
     organizer: "",
   });
 
-  const { title,date, location,ticketInitialNumber,ticketRemainNumber,organizer} = formData;
+  useEffect(() => {
+    dispatch(getEventById(eventId)); // Fetch event data by ID when component mounts
+  }, [dispatch, eventId]);
+
+  useEffect(() => {
+    // Populate form fields with event data when event state changes
+    if (event) {
+      setUpdateFormData({
+        title: event.title,
+        date: event.date,
+        location: event.location,
+        ticketInitialNumber: event.ticketInitialNumber,
+        ticketRemainNumber: event.ticketRemainNumber,
+        organizer: event.organizer,
+      });
+    }
+  }, [event]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
+    setUpdateFormData({ ...updateFormData, [name]: value });
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    // Handle form submission here
-    
-    if (title === "" ) {
-      toast.error("fill out title");
-    }
-    else if (date === "" ) {
-      toast.error("fill out date");
-    }
-    else if (location === "" ) {
-      toast.error("fill out location");
-    }
-    else if (ticketInitialNumber === "") {
-      toast.error("fill out Initial Number");
-    }
-    else if (ticketRemainNumber === "") {
-      toast.error("fill out Remain Number");
-    }
-    else if (organizer === "") {
-      toast.error("fill out Organizer");
-      }
-       
-    else {
-      dispatch(createEvent(formData));
-      toast.success("Event Added Successfully");
-      dispatch(reset());
-     
-      
-       // Reset the form data
-    setFormData({
-      title: "",
-      date: "",
-      location: "",
-      ticketInitialNumber: "",
-      ticketRemainNumber: "",
-      organizer: "",
-    });
-    }
+    // Handle update form submission here
+    dispatch(updateEvent({ eventId, eventData: updateFormData }));
+    toast.success("Event Updated Successfully");
+
   };
+
   const { user } = useSelector((state) => state.auth);
 
   if (!user) {
@@ -78,7 +62,7 @@ const AddNewEvents = () => {
   }
   return (
     <div>
-      <ToastContainer/>
+       <ToastContainer/>
       <div className="flex">
         <aside className="bg-sidebarBg shadow-lg h-screen fixed left-0 w-64">
           <SideBarMenu />
@@ -95,17 +79,13 @@ const AddNewEvents = () => {
                   <input
                     type="text"
                     placeholder="Search Here..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
                     className="border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:border-blue-500"
                   />
                   <i className="fa fa-search"></i>
                 </div>
                 <div className="flex items-center">
                   <img
-                    src={
-                      "https://icon-library.com/images/no-user-image-icon/no-user-image-icon-0.jpg"
-                    }
+                    src="https://icon-library.com/images/no-user-image-icon/no-user-image-icon-0.jpg"
                     alt="User"
                     className="w-8 h-8 rounded-full mr-2"
                   />
@@ -120,21 +100,21 @@ const AddNewEvents = () => {
 
           <div className="container mx-auto mt-10">
             <div className="mx-auto max-w-md">
-              <h2 className="text-2xl font-bold mb-4">Add New Event</h2>
+              <h2 className="text-2xl font-bold mb-4">Update Exist Event</h2>
               <form onSubmit={handleSubmit}>
+                {/* Update form fields with event data */}
                 <div className="mb-4">
-                  <label htmlFor="title" className="block mb-1">
-                    Title
-                  </label>
+                  <label htmlFor="title" className="block mb-1">Title</label>
                   <input
                     type="text"
                     id="title"
                     name="title"
-                    value={formData.title}
+                    value={updateFormData.title}
                     onChange={handleChange}
-                    className="border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:border-blue-500  w-full"
+                    className="border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:border-blue-500 w-full"
                   />
                 </div>
+
                 <div className="mb-4">
                   <label htmlFor="title" className="block mb-1">
                     Date
@@ -143,7 +123,7 @@ const AddNewEvents = () => {
                     type="date"
                     id="date"
                     name="date"
-                    value={formData.date}
+                    value={updateFormData.date}
                     onChange={handleChange}
                     className="border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:border-blue-500  w-full"
                   />
@@ -156,7 +136,7 @@ const AddNewEvents = () => {
                     type="text"
                     id="text"
                     name="location"
-                    value={formData.location}
+                    value={updateFormData.location}
                     onChange={handleChange}
                     className="border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:border-blue-500  w-full"
                   />
@@ -170,7 +150,7 @@ const AddNewEvents = () => {
                     type="text"
                     id="organizer"
                     name="organizer"
-                    value={formData.organizer}
+                    value={updateFormData.organizer}
                     onChange={handleChange}
                     className="border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:border-blue-500  w-full"
                   />
@@ -183,7 +163,7 @@ const AddNewEvents = () => {
                     type="text"
                     id="ticketNumber"
                     name="ticketInitialNumber"
-                    value={formData.ticketInitialNumber}
+                    value={updateFormData.ticketInitialNumber}
                     onChange={handleChange}
                     className="border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:border-blue-500  w-full"
                   />
@@ -196,16 +176,18 @@ const AddNewEvents = () => {
                     type="text"
                     id="remainingTicket"
                     name="ticketRemainNumber"
-                    value={formData.ticketRemainNumber}
+                    value={updateFormData.ticketRemainNumber}
                     onChange={handleChange}
                     className="border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:border-blue-500  w-full"
                   />
                 </div>
+                {/* Add other form fields similarly */}
+                
                 <button
                   type="submit"
                   className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600"
                 >
-                  Add Event
+                  Update Event
                 </button>
               </form>
             </div>
@@ -213,7 +195,7 @@ const AddNewEvents = () => {
         </section>
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default AddNewEvents;
+export default UpdateEvent;

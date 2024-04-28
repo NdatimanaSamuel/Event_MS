@@ -1,21 +1,21 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import eventService from "./eventService";
+import bookingService from "./bookingService";
 
 const initialState = {
-  events: [],
+  bookings: [],
   isError: false,
   isSuccess: false,
   isLoading: false,
   message: "",
 };
 
-// Create new event
-export const createEvent = createAsyncThunk(
-  "event/create",
-  async (eventData, thunkAPI) => {
+// Create new Ticket
+export const bookTicket = createAsyncThunk(
+  "ticket/createNew",
+  async (bookingData, thunkAPI) => {
     try {
       const token = thunkAPI.getState().auth.user?.token;
-      return await eventService.createEvent(eventData, token);
+      return await bookingService.bookTicket(bookingData, token);
     } catch (error) {
       const message =
         (error.response &&
@@ -28,13 +28,13 @@ export const createEvent = createAsyncThunk(
   }
 );
 
-// Get all Event
-export const getEvents = createAsyncThunk(
-  "events/getAll",
+//client get his /her booked tickets
+export const viewBookedTicket = createAsyncThunk(
+  "ticket/viewBookedTicket",
   async (_, thunkAPI) => {
     try {
       const token = thunkAPI.getState().auth.user?.token;
-      return await eventService.getEvents(token);
+      return await bookingService.getAllBookedTicket(token);
     } catch (error) {
       const message =
         (error.response &&
@@ -47,13 +47,13 @@ export const getEvents = createAsyncThunk(
   }
 );
 
-// Get event by id
-export const getEventById = createAsyncThunk(
-  "event/getEventById",
-  async (eventId, thunkAPI) => {
+// cancel booking
+export const cancelBookings = createAsyncThunk(
+  "booking/rejectBooking",
+  async (bookingId, thunkAPI) => {
     try {
       const token = thunkAPI.getState().auth.user?.token;
-      return await eventService.getEventById(eventId, token);
+      return await bookingService.cancelMyBooking(bookingId, token);
     } catch (error) {
       const message =
         (error.response &&
@@ -66,14 +66,13 @@ export const getEventById = createAsyncThunk(
   }
 );
 
-//detele event
-
-export const removeEvent = createAsyncThunk(
-  "event/removeEvent",
-  async (eventId, thunkAPI) => {
+// admin view all bookings
+export const adminViewAllBooking = createAsyncThunk(
+  "booking/AdminViewAllBooking",
+  async (_, thunkAPI) => {
     try {
       const token = thunkAPI.getState().auth.user?.token;
-      return await eventService.removeEvent(eventId, token);
+      return await bookingService.adminViewBookings(token);
     } catch (error) {
       const message =
         (error.response &&
@@ -85,14 +84,13 @@ export const removeEvent = createAsyncThunk(
     }
   }
 );
-
-//update event
-export const updateEvent = createAsyncThunk(
-  "event/updateEvent",
-  async ({ eventId, eventData }, thunkAPI) => {
+// manage admin status
+export const adminManageBookingStatus = createAsyncThunk(
+  "booking/manageBookingStatus",
+  async ({ bookingId, statusData }, thunkAPI) => { // Updated destructuring
     try {
       const token = thunkAPI.getState().auth.user?.token;
-      return await eventService.updateEvent(eventId, eventData, token);
+      return await bookingService.manageBookingStatusAdmin(bookingId, statusData, token);
     } catch (error) {
       const message =
         (error.response &&
@@ -105,80 +103,84 @@ export const updateEvent = createAsyncThunk(
   }
 );
 
-export const eventSlice = createSlice({
-  name: "event",
+
+export const bookingSlice = createSlice({
+  name: "booking",
   initialState,
   reducers: {
     reset: () => initialState,
   },
   extraReducers: (builder) => {
     builder
-      .addCase(createEvent.pending, (state) => {
+      .addCase(bookTicket.pending, (state) => {
         state.isLoading = true;
+        state.isError = false;
+        state.message = "";
       })
-      .addCase(createEvent.fulfilled, (state, action) => {
+      .addCase(bookTicket.fulfilled, (state, action) => {
         state.isLoading = false;
         state.isSuccess = true;
-        state.events.push(action.payload);
+        state.isError = false;
+        state.bookings.push(action.payload);
       })
-      .addCase(createEvent.rejected, (state, action) => {
-        state.isLoading = false;
-        state.isError = true;
-        state.message = action.payload;
-      })
-      .addCase(removeEvent.pending, (state) => {
-        state.isLoading = true;
-      })
-      .addCase(removeEvent.fulfilled, (state, action) => {
-        state.isLoading = false;
-        state.isSuccess = true;
-        // Filter out the deleted event from the events array
-        state.events = state.events.filter(
-          (event) => event.id !== action.payload.id
-        );
-      })
-      .addCase(removeEvent.rejected, (state, action) => {
+      .addCase(bookTicket.rejected, (state, action) => {
         state.isLoading = false;
         state.isError = true;
         state.message = action.payload;
       })
 
-      .addCase(getEvents.pending, (state) => {
+      .addCase(viewBookedTicket.pending, (state) => {
         state.isLoading = true;
       })
-      .addCase(getEvents.fulfilled, (state, action) => {
+      .addCase(viewBookedTicket.fulfilled, (state, action) => {
         state.isLoading = false;
         state.isSuccess = true;
-        state.events = action.payload;
+        state.bookings = action.payload;
       })
-      .addCase(getEvents.rejected, (state, action) => {
+      .addCase(viewBookedTicket.rejected, (state, action) => {
         state.isLoading = false;
         state.isError = true;
         state.message = action.payload;
       })
-      .addCase(getEventById.pending, (state) => {
+
+      .addCase(cancelBookings.pending, (state) => {
         state.isLoading = true;
       })
-      .addCase(getEventById.fulfilled, (state, action) => {
+      .addCase(cancelBookings.fulfilled, (state, action) => {
         state.isLoading = false;
         state.isSuccess = true;
-        state.events = action.payload;
+        state.bookings = state.bookings.filter(
+          (booking) => booking.id !== action.meta.arg
+        );
+        state.message = action.payload.message;
       })
-      .addCase(getEventById.rejected, (state, action) => {
+      .addCase(cancelBookings.rejected, (state, action) => {
         state.isLoading = false;
         state.isError = true;
         state.message = action.payload;
       })
-      
-      .addCase(updateEvent.pending, (state) => {
+      .addCase(adminViewAllBooking.pending, (state) => {
         state.isLoading = true;
       })
-      .addCase(updateEvent.fulfilled, (state, action) => {
+      .addCase(adminViewAllBooking.fulfilled, (state, action) => {
         state.isLoading = false;
         state.isSuccess = true;
-        state.events.push(action.payload);
+        state.bookings = action.payload;
       })
-      .addCase(updateEvent.rejected, (state, action) => {
+      .addCase(adminViewAllBooking.rejected, (state, action) => {
+        state.isLoading = false;
+        state.isError = true;
+        state.message = action.payload;
+      })
+      .addCase(adminManageBookingStatus.pending, (state) => {
+        state.isLoading = true;
+      })
+      .addCase(adminManageBookingStatus.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.booking = action.payload;
+        state.message = "Booking status updated successfully";
+      })
+      .addCase(adminManageBookingStatus.rejected, (state, action) => {
         state.isLoading = false;
         state.isError = true;
         state.message = action.payload;
@@ -186,5 +188,5 @@ export const eventSlice = createSlice({
   },
 });
 
-export const { reset } = eventSlice.actions;
-export default eventSlice.reducer;
+export const { reset } = bookingSlice.actions;
+export default bookingSlice.reducer;

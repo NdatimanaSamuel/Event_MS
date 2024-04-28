@@ -20,7 +20,7 @@ const SideBarMenu = () => {
   
   return (
     <>
-      <div className="py-6 px-4 bg-sidebarBg">
+      <div className="py-6 px-4 bg-sidebarBg ">
         <h4 className="text-2xl font-bold flex items-center">
           <FiMonitor className="mr-2" /> <span>Manage Events</span>
         </h4>
@@ -43,19 +43,24 @@ const SideBarMenu = () => {
             </Link>
           </li>
           <li className="px-4 py-2 hover:bg-gray-200">
-            <a href="#" className="flex items-center">
+            <Link to="/manageBookings" className="flex items-center">
               <FiFile className="mr-2" /> Manage Booking
-            </a>
+            </Link>
           </li>
           <li className="px-4 py-2 hover:bg-gray-200">
-            <a href="#" className="flex items-center">
+            <Link to="/view-allApproved" className="flex items-center">
               <FiFile className="mr-2" /> View Approved Booking
-            </a>
+            </Link>
           </li>
           <li className="px-4 py-2 hover:bg-gray-200">
-            <a href="#" className="flex items-center">
+            <Link to="/view-allrejectedbooking" className="flex items-center">
               <FiFile className="mr-2" /> View Cancelled Booking
-            </a>
+            </Link>
+          </li>
+          <li className="px-4 py-2 hover:bg-gray-200">
+            <Link to="/make-BookingReports" className="flex items-center">
+              <FiFile className="mr-2" /> Make Booking Reports 
+            </Link>
           </li>
           <li className="px-4 py-2 hover:bg-gray-200">
             

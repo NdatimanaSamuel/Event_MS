@@ -1,0 +1,40 @@
+# Ignore node_modules directory
+node_modules/
+
+# Ignore log files and npm-debug.log
+*.log
+npm-debug.log*
+
+# Ignore .env file which may contain sensitive information
+.env
+
+# Ignore build and dist directories
+/build/
+/dist/
+
+# Ignore local configuration files
+*.local
+
+# Ignore any generated files
+.DS_Store
+Thumbs.db
+
+# Ignore coverage output
+coverage/
+
+# Ignore runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Ignore yarn error logs
+yarn-error.log
+
+# Ignore OS generated files
+.DS_Store
+ehthumbs.db
+Thumbs.db
+
+# Ignore VS Code settings
+.vscode/

@@ -1,128 +1,132 @@
-import { useEffect, useState } from "react";
 import { FaHome } from "react-icons/fa";
+import { Link, Navigate, useParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { Link, useNavigate } from "react-router-dom";
-import { login, reset } from "../../redux/features/auth/authSlice";
+import { useEffect, useState } from "react";
 import { toast, ToastContainer } from "react-toastify";
+import { bookTicket, reset } from "../../redux/features/booking/bookingSlice";
 import CustomerMenus from "../../components/CustomerMenus";
-const Login = () => {
-  const [formData, setFormData] = useState({
-    email: "",
-    password: "",
-  });
 
-  const { email, password } = formData;
-  const navigate = useNavigate();
+const MakeBooking = () => {
+  
+
+  const { eventId } = useParams(); // Get the eventId from the URL
+  const { user } = useSelector((state) => state.auth);
+  const userId = user ? user._id : null; // Accessing the userId from the user object
+
   const dispatch = useDispatch();
+  const [formData, setFormData] = useState({
+    numberOfTickets: "",
+    userId: userId,
+    eventId: eventId,
+  });
+  const { numberOfTickets } = formData;
 
-  const { user, isError, isSuccess, message } = useSelector(
-    (state) => state.auth
+  // State to manage errors
+  const { bookings,isError, isSuccess, message } = useSelector(
+    (state) => state.booking
   );
 
   useEffect(() => {
+    // Display error message if there's an error
     if (isError) {
       toast.error(message);
+      // Reset the booking state after displaying the error
+      dispatch(reset());
     }
+  }, [bookings,isError, isSuccess, message, dispatch]);
 
-    dispatch(reset());
-  }, [user, isError, isSuccess, message, navigate, dispatch]);
+
 
   const handleChange = (e) => {
-    setFormData((prevState) => ({
-      ...prevState,
-      [e.target.name]: e.target.value,
-    }));
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: value });
   };
+
+ 
+
   const handleSubmit = (e) => {
     e.preventDefault();
-    // Check if email or password is empty
-    if (!email || !password) {
-      toast.error("Email and password are required");
-      return; // Exit the function early if email or password is empty
+    // console.log(formData);
+    if (numberOfTickets === "") {
+      toast.error("Fill out Ticket Field");
     }
-    const userData = {
-      email,
-      password,
-    };
-
-    dispatch(login(userData))
+    else if (numberOfTickets <= 0) {
+      toast.error("Fill valid Ticket number");
+     }
+    else {
+      dispatch(bookTicket(formData))
+      
       .then((response) => {
-        // Check user's role and redirect accordingly
-        if (response.payload.role === "client") {
-          navigate("/homeCustomer");
-        }
-        if (response.payload.role === "admin") {
-          navigate("/homeAdmin");
+        // Check if account is successfully created
+        if (response.payload && response.payload.message === "Booking created successfully") {
+          toast.success("Booking Sent Successfully");
+          dispatch(reset());
+         
+        } else {
+          // Handle other cases where registration fails
+          toast.error(response.payload.message || "Failed to book a tickets");
         }
       })
       .catch((error) => {
-        toast.error(error.message);
+        toast.error(error.message || "Failed to book a tickets");
       });
+     
+
+     
+    }
   };
+  
+  if (!userId) {
+    return <Navigate to="/login" />;
+  }
+
+  if (user.role !== "client") {
+    // For example, if only customers are allowed to make a booking
+    return <Navigate to="/unauthorized" />; // Redirect to an unauthorized page
+  }
+  
   return (
     <>
       <ToastContainer />
       <header className="bg-white p-4 flex justify-between items-center fixed top-0 w-full z-10 shadow-md">
-        <a href="#" className="logo flex items-center">
+        <Link to="#" className="logo flex items-center">
           <FaHome className="mr-2 text-4xl text-sidebarBg" />
           <h1 className="text-xl font-semibold">Telex Events</h1>
-        </a>
+        </Link>
         <div className="flex items-center">
           <CustomerMenus />
         </div>
       </header>
 
-      <div className="mt-20"></div>
-
-      <section className="home py-16">
+      <section className="home py-16 mt-10">
         <div className="container mx-auto">
-          <h1 className="text-4xl font-bold text-center mb-8">Login</h1>
+          <h4 className="text-2xl font-bold text-center mb-8">
+            Fill Form Make a Booking
+          </h4>
           <form className="max-w-sm mx-auto" onSubmit={handleSubmit}>
             <div className="mb-4">
               <label htmlFor="email" className="block text-gray-700">
-                Email
+                Number of Ticket
               </label>
               <input
-                type="email"
-                id="email"
-                value={email}
-                name="email"
+                type="text"
+                id="text"
+                name="numberOfTickets"
+                value={formData.numberOfTickets}
                 onChange={handleChange}
                 className="border border-gray-300 px-4 py-2 rounded-md w-full focus:outline-none focus:border-sidebarBg"
               />
             </div>
-            <div className="mb-4">
-              <label htmlFor="password" className="block text-gray-700">
-                Password
-              </label>
-              <input
-                type="password"
-                id="password"
-                value={password}
-                onChange={handleChange}
-                name="password"
-                className="border border-gray-300 px-4 py-2 rounded-md w-full focus:outline-none focus:border-sidebarBg"
-              />
-            </div>
+
             <button
               type="submit"
               className="bg-sidebarBg text-white px-4 py-2 rounded-md hover:bg-opacity-90 transition duration-300 w-full"
             >
-              Login
+              save booking
             </button>
           </form>
-          <p className="text-center mt-4">
-            Don not have an account?{" "}
-            <Link
-              to="/signup"
-              className="text-sidebarBg font-semibold hover:underline"
-            >
-              Create New User
-            </Link>
-          </p>
         </div>
       </section>
-
       <footer className="bg-white text-colorText py-8 border-t-2 border-gray-300 shadow-md">
         <div className="container mx-auto">
           <div className="flex flex-wrap justify-between items-center">
@@ -187,4 +191,4 @@ const Login = () => {
   );
 };
 
-export default Login;
+export default MakeBooking;

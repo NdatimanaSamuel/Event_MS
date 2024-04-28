@@ -1,7 +1,30 @@
 import { FaHome } from "react-icons/fa";
 import CustomerMenus from "../../components/CustomerMenus";
+import { Link, Navigate } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import { useEffect } from "react";
+import { getEvents } from "../../redux/features/events/eventSlice";
 
 const CustomerHome = () => {
+  const dispatch = useDispatch();
+  const { events, isLoading, isError, message } = useSelector(
+    (state) => state.event
+  );
+  useEffect(() => {
+    dispatch(getEvents());
+  }, [dispatch]);
+
+  const { user } = useSelector((state) => state.auth);
+  
+  if (!user) {
+    return <Navigate to="/login" />;
+  }
+
+  if (user.role !== "client") {
+    // For example, if only customers are allowed to make a booking
+    return <Navigate to="/unauthorized" />; // Redirect to an unauthorized page
+  }
+  
   return (
     <>
       <header className="bg-white p-4 flex justify-between items-center fixed top-0 w-full z-10 shadow-md">
@@ -15,62 +38,52 @@ const CustomerHome = () => {
       </header>
 
       <section className="home py-16 mt-20">
-        <div className="container mx-auto">
-          <h1 className="text-4xl font-bold text-center mb-8">
-            Available Events
-          </h1>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            <div className="bg-gray-100 rounded-lg overflow-hidden shadow-md">
-              <img
-                src="https://i.pinimg.com/originals/8e/07/80/8e078013204d0cc9876e9edbb1fd3f85.jpg"
-                alt="Inyange Dairy"
-                className="w-full h-56 object-cover object-center"
-              />
-              <div className="p-4">
-                <h2 className="text-xl font-semibold">Inyange Dairy</h2>
-                <p className="text-gray-600">Musanze</p>
-                <p className="text-gray-600">April 30, 2024</p>
-                <p className="mt-2 text-gray-700">
-                  Inyange industries is engaged in the business of producing &
-                  selling a wide variety of fruit products, including fruit
-                  juice concentrates, fruit juice drinks & dairy related
-                  products.
-                </p>
-                <a
-                  href="#"
-                  className="block mt-2 text-center bg-sidebarBg text-gray-500 font-semibold px-4 py-2 rounded-md hover:bg-sidebarBg transition duration-300"
-                >
-                  Book Ticket Now
-                </a>
-              </div>
-            </div>
+        {isLoading ? (
+          <p>Loading...</p>
+        ) : isError ? (
+          <p>Error: {message}</p>
+        ) : (
+          <div className="container mx-auto">
+            <h1 className="text-4xl font-bold text-center mb-8">
+              Available Events
+            </h1>
 
-            <div className="bg-gray-100 rounded-lg overflow-hidden shadow-md">
-              <img
-                src="https://i.pinimg.com/originals/8e/07/80/8e078013204d0cc9876e9edbb1fd3f85.jpg"
-                alt="Mukamira Dairy"
-                className="w-full h-56 object-cover object-center"
-              />
-              <div className="p-4">
-                <h2 className="text-xl font-semibold">Mukamira Dairy</h2>
-                <p className="text-gray-600">Gicumbi</p>
-                <p className="text-gray-600">May 5, 2024</p>
-                <p className="mt-2 text-gray-700">
-                  The Mukamira Plant has started operating since 2017. Its
-                  operations include processing and selling pasteurized milk,
-                  gouda cheese, yogurt, UHT-whole milk, UHT Flavored.
-                </p>
-                <a
-                  href="#"
-                  className="block mt-2 text-center bg-sidebarBg text-gray-500 font-semibold px-4 py-2 rounded-md hover:bg-sidebarBg transition duration-300"
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {events.map((event) => (
+                <div
+                  key={event._id} // Use a unique identifier as the key
+                  className="bg-gray-100 rounded-lg overflow-hidden shadow-md"
                 >
-                  Book Ticket Now
-                </a>
-              </div>
+                  <img
+                    src="https://i.pinimg.com/originals/8e/07/80/8e078013204d0cc9876e9edbb1fd3f85.jpg"
+                    alt="Inyange Dairy"
+                    className="w-full h-56 object-cover object-center"
+                  />
+                  <div className="p-4">
+                    <h2 className="text-xl font-semibold">{event.title}</h2>
+                    <p className="text-gray-600">Place: {event.location}</p>
+                    <p className="text-gray-600">Date: {event.date}</p>
+                    <p className="mt-2 text-gray-700 font-bold">
+                      Organized By: {event.organizer}
+                    </p>
+                   
+                      <Link
+                        to={`/makeBooking/${event._id}`}
+                        className="block mt-2 text-center bg-sidebarBg text-gray-500 font-semibold px-4 py-2 rounded-md hover:bg-sidebarBg transition duration-300"
+                      >
+                        Book Ticket Now
+                      </Link>
+                 
+                      
+                    
+                  </div>
+                </div>
+              ))}
+
+              {/* Add more event cards as needed */}
             </div>
-            {/* Add more event cards as needed */}
           </div>
-        </div>
+        )}
       </section>
 
       <footer className="bg-white text-colorText py-8  border-t-2 border-gray-300 shadow-md ">
